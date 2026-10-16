@@ -1,0 +1,446 @@
+import { useState } from "react";
+import { motion } from "motion/react";
+
+// ─── Raw verb data from complex-concepts.md ───────────────────────────────────
+const VERBS = [
+  // CAT ─────────────────────────────────────────────────────────────────────
+  { id:"mac_morph",       name:"morph",              cat:"CAT", arrowType:"Morphism",            object:"Set → Set",             kleisli:false, pWord:"Power",        hz:2.37, r:0.95, verb:"MORPH"        },
+  { id:"mac_compose",     name:"compose",            cat:"CAT", arrowType:"Composition",         object:"Chain",                 kleisli:false, pWord:"Prayer",       hz:1.83, r:0.98, verb:"COMPOSE"      },
+  { id:"mac_identify",    name:"identify",           cat:"CAT", arrowType:"Identity",            object:"Self",                  kleisli:false, pWord:"Persistence",  hz:0.22, r:0.97, verb:"IDENTIFY"     },
+  { id:"mac_map",         name:"map",                cat:"CAT", arrowType:"Functor",             object:"Transform",             kleisli:false, pWord:"Precision",    hz:0.44, r:0.87, verb:"MAP"          },
+  { id:"mac_transform",   name:"transform",          cat:"CAT", arrowType:"Natural Transformation",object:"Bridge",             kleisli:false, pWord:"Progress",     hz:1.41, r:0.90, verb:"TRANSFORM"    },
+  { id:"mac_limit",       name:"limit",              cat:"CAT", arrowType:"Limit",               object:"Invariant",             kleisli:false, pWord:"Precision",    hz:0.44, r:0.87, verb:"LIMIT"        },
+  { id:"mac_colimit",     name:"colimit",            cat:"CAT", arrowType:"Colimit",             object:"Emergence",             kleisli:false, pWord:"Progress",     hz:1.41, r:0.90, verb:"COLIMIT"      },
+  { id:"mac_pullback",    name:"pullback",           cat:"CAT", arrowType:"Pullback",            object:"Dependency",            kleisli:false, pWord:"Power",        hz:2.37, r:0.95, verb:"PULLBACK"     },
+  { id:"mac_pushout",     name:"pushout",            cat:"CAT", arrowType:"Pushout",             object:"Merge",                 kleisli:false, pWord:"Progress",     hz:1.41, r:0.90, verb:"PUSHOUT"      },
+  { id:"mac_equalize",    name:"equalize",           cat:"CAT", arrowType:"Equalizer",           object:"Kernel",                kleisli:false, pWord:"Precision",    hz:0.44, r:0.87, verb:"EQUALIZE"     },
+  { id:"mac_coproduct",   name:"coproduct",          cat:"CAT", arrowType:"Coproduct",           object:"Sum",                   kleisli:false, pWord:"Productivity", hz:0.61, r:0.88, verb:"COPRODUCT"    },
+  { id:"mac_product",     name:"product",            cat:"CAT", arrowType:"Product",             object:"Pair",                  kleisli:false, pWord:"Productivity", hz:0.61, r:0.88, verb:"PRODUCT"      },
+  { id:"mac_exponentiate",name:"exponentiate",       cat:"CAT", arrowType:"Exponential",         object:"Function Space",        kleisli:false, pWord:"Power",        hz:2.37, r:0.95, verb:"EXPONENTIATE" },
+  { id:"mac_adjoint",     name:"adjoint",            cat:"CAT", arrowType:"Adjoint",             object:"Free/Forgetful",        kleisli:false, pWord:"Persistence",  hz:0.22, r:0.97, verb:"ADJOINT"      },
+  { id:"mac_monad",       name:"monad",              cat:"CAT", arrowType:"Monad",               object:"Computation",           kleisli:false, pWord:"Productivity", hz:0.61, r:0.88, verb:"MONAD"        },
+  { id:"mac_act",         name:"act",                cat:"CAT", arrowType:"Monoid",              object:"Action",                kleisli:false, pWord:"Power",        hz:2.37, r:0.95, verb:"ACT"          },
+  { id:"mac_symmetrize",  name:"symmetrize",         cat:"CAT", arrowType:"Groupoid",            object:"Symmetry",              kleisli:false, pWord:"Precision",    hz:0.44, r:0.87, verb:"SYMMETRIZE"   },
+  { id:"mac_topos",       name:"topos",              cat:"CAT", arrowType:"Topos",               object:"Logic",                 kleisli:false, pWord:"Persistence",  hz:0.22, r:0.97, verb:"TOPOS"        },
+  { id:"cat_functor",     name:"functor",            cat:"CAT", arrowType:"Category Map",        object:"Cat → Cat",             kleisli:false, pWord:"Progress",     hz:1.41, r:0.90, verb:"FUNCTOR"      },
+  { id:"cat_natural",     name:"natural",            cat:"CAT", arrowType:"Transformation",      object:"Functor → Functor",     kleisli:false, pWord:"Progress",     hz:1.41, r:0.90, verb:"NATURAL"      },
+  { id:"cat_represent",   name:"represent",          cat:"CAT", arrowType:"Yoneda",              object:"Object → Functor",      kleisli:false, pWord:"Progress",     hz:1.41, r:0.90, verb:"REPRESENT"    },
+  { id:"cat_embed",       name:"embed",              cat:"CAT", arrowType:"Inclusion",           object:"Subcategory → Category",kleisli:false, pWord:"Progress",     hz:1.41, r:0.90, verb:"EMBED"        },
+  { id:"cat_linearize",   name:"linearize",          cat:"CAT", arrowType:"Functor",             object:"Grpb → Vect",           kleisli:false, pWord:"Progress",     hz:1.41, r:0.90, verb:"LINEARIZE"    },
+  { id:"pipe_abelianize", name:"abelianize",         cat:"CAT", arrowType:"Functor",             object:"CAT → Ab",              kleisli:false, pWord:"Persistence",  hz:0.22, r:0.97, verb:"ABELIANIZE"   },
+  { id:"lim_cone",        name:"cone",               cat:"CAT", arrowType:"Cone",                object:"Limit Cone",            kleisli:false, pWord:"Precision",    hz:0.44, r:0.87, verb:"CONE"         },
+  { id:"col_cocone",      name:"cocone",             cat:"CAT", arrowType:"Cocone",              object:"Colimit Cocone",         kleisli:false, pWord:"Progress",     hz:1.41, r:0.90, verb:"COCONE"       },
+  // Kleisli monadic ops
+  { id:"monad_unit",      name:"unit",               cat:"CAT", arrowType:"X → T(X)",           object:"Computation",           kleisli:true,  pWord:"Productivity", hz:0.61, r:0.88, verb:"UNIT"         },
+  { id:"monad_join",      name:"join",               cat:"CAT", arrowType:"T(T(X)) → T(X)",     object:"Computation",           kleisli:true,  pWord:"Productivity", hz:0.61, r:0.88, verb:"JOIN"         },
+  { id:"monad_bind",      name:"bind",               cat:"CAT", arrowType:"T(X)×(X→T(Y))→T(Y)",object:"Computation",           kleisli:true,  pWord:"Productivity", hz:0.61, r:0.88, verb:"BIND"         },
+  { id:"monad_lift",      name:"lift",               cat:"CAT", arrowType:"(X→Y)→(T(X)→T(Y))", object:"Computation",           kleisli:true,  pWord:"Productivity", hz:0.61, r:0.88, verb:"LIFT"         },
+  { id:"monad_flatten",   name:"flatten",            cat:"CAT", arrowType:"T(T(X)) → T(X)",     object:"Computation",           kleisli:true,  pWord:"Productivity", hz:0.61, r:0.88, verb:"FLATTEN"      },
+  { id:"kleisli_shuffle", name:"shuffle_deck",       cat:"CAT", arrowType:"Kleisli Arrow",       object:"Deck → T(Deck)",        kleisli:true,  pWord:"Prayer",       hz:1.83, r:0.98, verb:"SHUFFLE"      },
+  { id:"kleisli_coherence",name:"compute_coherence", cat:"CAT", arrowType:"Kleisli Arrow",       object:"Card → T(Number)",      kleisli:true,  pWord:"Prayer",       hz:1.83, r:0.98, verb:"COHERENCE"    },
+  { id:"kleisli_log",     name:"log_card_shuffle",   cat:"CAT", arrowType:"Kleisli Arrow",       object:"Order → T(Ledger)",     kleisli:true,  pWord:"Prayer",       hz:1.83, r:0.98, verb:"LOG"          },
+  { id:"kleisli_gpu",     name:"get_gpu_allocation", cat:"CAT", arrowType:"Kleisli Arrow",       object:"Priority → T(GPU)",     kleisli:true,  pWord:"Prayer",       hz:1.83, r:0.98, verb:"GPU"          },
+  { id:"kleisli_verify",  name:"verify_reality",     cat:"CAT", arrowType:"Kleisli Arrow",       object:"Emoji → T(Bool)",       kleisli:true,  pWord:"Prayer",       hz:1.83, r:0.98, verb:"VERIFY"       },
+  { id:"kleisli_encode",  name:"encode_to_emoji",    cat:"CAT", arrowType:"Kleisli Arrow",       object:"Text → T(EmojiList)",   kleisli:true,  pWord:"Prayer",       hz:1.83, r:0.98, verb:"ENCODE"       },
+  // SET ─────────────────────────────────────────────────────────────────────
+  { id:"set_inject",      name:"inject",             cat:"SET", arrowType:"Monic",               object:"Subset → Set",          kleisli:false, pWord:"Precision",    hz:0.44, r:0.87, verb:""             },
+  { id:"set_surject",     name:"surject",            cat:"SET", arrowType:"Epi",                 object:"Set → Quotient",        kleisli:false, pWord:"Precision",    hz:0.44, r:0.87, verb:""             },
+  { id:"set_biject",      name:"biject",             cat:"SET", arrowType:"Iso",                 object:"Set ↔ Set",             kleisli:false, pWord:"Precision",    hz:0.44, r:0.87, verb:""             },
+  { id:"set_construct",   name:"construct",          cat:"SET", arrowType:"Object",              object:"∅ → Set",               kleisli:false, pWord:"Precision",    hz:0.44, r:0.87, verb:""             },
+  { id:"set_classify",    name:"classify",           cat:"SET", arrowType:"Characteristic",      object:"Set → 2",               kleisli:false, pWord:"Precision",    hz:0.44, r:0.87, verb:""             },
+  { id:"lim_terminal",    name:"terminal",           cat:"SET", arrowType:"Terminal",            object:"Final Object",          kleisli:false, pWord:"Persistence",  hz:0.22, r:0.97, verb:""             },
+  { id:"lim_initial",     name:"initial",            cat:"SET", arrowType:"Initial",             object:"Initial Object",        kleisli:false, pWord:"Persistence",  hz:0.22, r:0.97, verb:""             },
+  { id:"lim_fiber",       name:"fiber",              cat:"SET", arrowType:"Fiber",               object:"Pullback Fiber",        kleisli:false, pWord:"Power",        hz:2.37, r:0.95, verb:""             },
+  { id:"col_amalgamate",  name:"amalgamate",         cat:"SET", arrowType:"Amalgam",             object:"Pushout Sum",           kleisli:false, pWord:"Power",        hz:2.37, r:0.95, verb:""             },
+  { id:"col_sum",         name:"disjoint_sum",       cat:"SET", arrowType:"Sum",                 object:"Disjoint Union",        kleisli:false, pWord:"Productivity", hz:0.61, r:0.88, verb:""             },
+  // GRPB ────────────────────────────────────────────────────────────────────
+  { id:"grpb_traverse",   name:"traverse",           cat:"GRPB",arrowType:"Path",                object:"Node → Node",           kleisli:false, pWord:"Progress",     hz:1.41, r:0.90, verb:""             },
+  { id:"grpb_propagate",  name:"propagate",          cat:"GRPB",arrowType:"Flow",                object:"Node → Node",           kleisli:false, pWord:"Progress",     hz:1.41, r:0.90, verb:""             },
+  { id:"grpb_cycle",      name:"cycle",              cat:"GRPB",arrowType:"Loop",                object:"Node → Node",           kleisli:false, pWord:"Progress",     hz:1.41, r:0.90, verb:""             },
+  { id:"grpb_span",       name:"span",               cat:"GRPB",arrowType:"Tree",                object:"Root → Leaves",         kleisli:false, pWord:"Progress",     hz:1.41, r:0.90, verb:""             },
+  { id:"col_orbit",       name:"orbit",              cat:"GRPB",arrowType:"Orbit",               object:"Group Action",          kleisli:false, pWord:"Progress",     hz:1.41, r:0.90, verb:""             },
+  // VECT ────────────────────────────────────────────────────────────────────
+  { id:"vect_eigenvalue", name:"eigenvalue",         cat:"VECT",arrowType:"Spectrum",            object:"Matrix → Scalar",       kleisli:false, pWord:"Precision",    hz:0.44, r:0.87, verb:""             },
+  { id:"vect_eigenvector",name:"eigenvector",        cat:"VECT",arrowType:"Direction",           object:"Matrix → Vector",       kleisli:false, pWord:"Precision",    hz:0.44, r:0.87, verb:""             },
+  { id:"vect_diagonalize",name:"diagonalize",        cat:"VECT",arrowType:"Decompose",           object:"Matrix → Diagonal",     kleisli:false, pWord:"Precision",    hz:0.44, r:0.87, verb:""             },
+  { id:"vect_spectral",   name:"spectralize",        cat:"VECT",arrowType:"Spectrum",            object:"Operator → Eigenvalues",kleisli:false, pWord:"Precision",    hz:0.44, r:0.87, verb:""             },
+  { id:"vect_orthogonalize",name:"orthogonalize",    cat:"VECT",arrowType:"Gram-Schmidt",        object:"Vectors → Orthonormal", kleisli:false, pWord:"Precision",    hz:0.44, r:0.87, verb:""             },
+  // R_MOD ───────────────────────────────────────────────────────────────────
+  { id:"rmod_tensor",     name:"tensor",             cat:"R_MOD",arrowType:"Product",            object:"Module ⊗ Module",        kleisli:false, pWord:"Power",        hz:2.37, r:0.95, verb:""             },
+  { id:"rmod_hom",        name:"hom",                cat:"R_MOD",arrowType:"Homomorphism",       object:"Module → Module",        kleisli:false, pWord:"Power",        hz:2.37, r:0.95, verb:""             },
+  { id:"rmod_free",       name:"free",               cat:"R_MOD",arrowType:"Free Module",        object:"Set → Free(R-Mod)",      kleisli:false, pWord:"Power",        hz:2.37, r:0.95, verb:""             },
+  { id:"rmod_forget",     name:"forget",             cat:"R_MOD",arrowType:"Forgetful",          object:"R-Mod → Set",            kleisli:false, pWord:"Power",        hz:2.37, r:0.95, verb:""             },
+  { id:"rmod_quotient",   name:"quotient",           cat:"R_MOD",arrowType:"Factor",             object:"Module → Module/I",      kleisli:false, pWord:"Power",        hz:2.37, r:0.95, verb:""             },
+  // TOP ─────────────────────────────────────────────────────────────────────
+  { id:"top_continuous",  name:"continuous",         cat:"TOP", arrowType:"Map",                 object:"Space → Space",          kleisli:false, pWord:"Persistence",  hz:0.22, r:0.97, verb:""             },
+  { id:"top_homeomorph",  name:"homeomorph",         cat:"TOP", arrowType:"Iso",                 object:"Space ↔ Space",          kleisli:false, pWord:"Persistence",  hz:0.22, r:0.97, verb:""             },
+  { id:"top_deform",      name:"deform",             cat:"TOP", arrowType:"Homotopy",            object:"Space → Space",          kleisli:false, pWord:"Persistence",  hz:0.22, r:0.97, verb:""             },
+  { id:"top_compactify",  name:"compactify",         cat:"TOP", arrowType:"Completion",          object:"Space → Compact",        kleisli:false, pWord:"Persistence",  hz:0.22, r:0.97, verb:""             },
+  // ADJ ─────────────────────────────────────────────────────────────────────
+  { id:"adj_unit",        name:"unit η",             cat:"ADJ", arrowType:"η",                   object:"X → UF(X)",              kleisli:false, pWord:"Prayer",       hz:1.83, r:0.98, verb:"η"            },
+  { id:"adj_counit",      name:"counit ε",           cat:"ADJ", arrowType:"ε",                   object:"FU(Y) → Y",              kleisli:false, pWord:"Prayer",       hz:1.83, r:0.98, verb:"ε"            },
+  { id:"adj_free",        name:"free",               cat:"ADJ", arrowType:"Left Adjoint",        object:"Set → Free",             kleisli:false, pWord:"Prayer",       hz:1.83, r:0.98, verb:""             },
+  { id:"adj_forget",      name:"forget",             cat:"ADJ", arrowType:"Right Adjoint",       object:"Structured → Set",       kleisli:false, pWord:"Prayer",       hz:1.83, r:0.98, verb:""             },
+  { id:"adj_preserve",    name:"preserve",           cat:"ADJ", arrowType:"Limit Preservation",  object:"Functor → Functor",      kleisli:false, pWord:"Prayer",       hz:1.83, r:0.98, verb:""             },
+  { id:"adj_reflect",     name:"reflect",            cat:"ADJ", arrowType:"Limit Reflection",    object:"Functor → Functor",      kleisli:false, pWord:"Prayer",       hz:1.83, r:0.98, verb:""             },
+  { id:"adj_categorify",  name:"categorify",         cat:"ADJ", arrowType:"Functor",             object:"R-Mod → CAT",            kleisli:false, pWord:"Prayer",       hz:1.83, r:0.98, verb:""             },
+];
+
+// ─── Scoring ──────────────────────────────────────────────────────────────────
+const PWORD_SCORE: Record<string, number> = {
+  Prayer: 6, Persistence: 5, Power: 4, Progress: 3, Productivity: 2, Precision: 1,
+};
+const PWORD_COLOR: Record<string, string> = {
+  Prayer: "#D4AF37", Persistence: "#8BC34A", Power: "#D32F2F",
+  Progress: "#60A5FA", Productivity: "#A78BFA", Precision: "#6B7280",
+};
+
+function score(v: typeof VERBS[0]) {
+  return v.r * 100 + PWORD_SCORE[v.pWord] * 0.8 + (v.kleisli ? 2 : 0);
+}
+
+const ALL_CATS = ["ALL", "CAT", "ADJ", "SET", "GRPB", "VECT", "R_MOD", "TOP"];
+
+// Pre-sort
+const SORTED = [...VERBS].sort((a, b) => score(b) - score(a));
+
+// Summit tier: score ≥ 100.78 (Prayer + kleisli or Prayer + high r)
+const SUMMIT = SORTED.filter((v) => score(v) >= 100.78);
+const REST   = SORTED.filter((v) => score(v) < 100.78);
+
+// Category champions
+const CHAMPS: Record<string, typeof VERBS[0]> = {};
+for (const v of SORTED) {
+  if (!CHAMPS[v.cat]) CHAMPS[v.cat] = v;
+}
+
+export default function OperatorIndex() {
+  const [catFilter, setCatFilter] = useState("ALL");
+  const [selected, setSelected] = useState<typeof VERBS[0] | null>(SUMMIT[0]);
+
+  const visible = catFilter === "ALL"
+    ? SORTED
+    : SORTED.filter((v) => v.cat === catFilter);
+
+  return (
+    <div className="max-w-7xl mx-auto px-6 py-12 pb-32">
+
+      {/* ── Header ─────────────────────────────────────────────────────────── */}
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="mb-14"
+      >
+        {/* Eye-bar */}
+        <div className="flex items-center gap-3 mb-6">
+          <div className="h-px flex-1 bg-[#D4AF37]/30" />
+          <span className="font-mono text-[9px] tracking-[0.35em] text-[#D4AF37] uppercase">
+            Operator Index · Best of the Best
+          </span>
+          <div className="h-px flex-1 bg-[#D4AF37]/30" />
+        </div>
+
+        <h1 className="font-sans font-black text-5xl md:text-7xl tracking-tighter text-[#F8F9FA] mb-2 leading-none">
+          THE SUMMIT
+        </h1>
+        <h2 className="font-sans font-black text-5xl md:text-7xl tracking-tighter text-[#D4AF37] mb-6 leading-none">
+          OPERATORS
+        </h2>
+
+        <p className="font-mono text-sm text-[#555] max-w-xl leading-relaxed">
+          {VERBS.length} verbs ranked by composite score:{" "}
+          <span className="text-[#8BC34A]">resistance × 100</span> +{" "}
+          <span className="text-[#D4AF37]">pWord tier × 0.8</span> +{" "}
+          <span className="text-[#D32F2F]">Kleisli bonus</span>.
+          The apex is Prayer + Kleisli.
+        </p>
+
+        {/* Graph legend from the doc: A→D→F→G←E←(B,C) */}
+        <div className="mt-6 border border-[#1E1E1E] bg-[#0D0D0D] px-5 py-4 inline-flex items-center gap-2 font-mono text-xs text-[#555]">
+          <span className="text-[#D32F2F]">A</span>
+          <span>→</span>
+          <span className="text-[#D4AF37]">D</span>
+          <span>→</span>
+          <span className="text-[#8BC34A]">F</span>
+          <span>→</span>
+          <span className="text-[#F8F9FA] font-bold">G</span>
+          <span>←</span>
+          <span className="text-[#60A5FA]">E</span>
+          <span>←</span>
+          <span className="text-[#A78BFA]">(B, C)</span>
+          <span className="ml-3 text-[#333] text-[9px] tracking-widest">ALL SWARM TO G · TERMINAL</span>
+        </div>
+      </motion.div>
+
+      {/* ── Summit tier ────────────────────────────────────────────────────── */}
+      <section className="mb-14">
+        <div className="font-mono text-[9px] tracking-[0.28em] text-[#D4AF37] uppercase mb-4">
+          ◆ Tier S — The Summit ({SUMMIT.length} operators)
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {SUMMIT.map((v, i) => (
+            <motion.button
+              key={v.id}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.04 }}
+              onClick={() => setSelected(v)}
+              className={[
+                "text-left p-4 border transition-all duration-150 group",
+                selected?.id === v.id
+                  ? "border-[#D4AF37] bg-[#D4AF37]/8"
+                  : "border-[#2A2A2A] bg-[#0D0D0D] hover:border-[#D4AF37]/50",
+              ].join(" ")}
+            >
+              <div className="flex items-start justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  {v.kleisli && (
+                    <span className="font-mono text-[8px] tracking-widest text-[#D32F2F] border border-[#D32F2F]/50 px-1 py-px">
+                      Kleisli
+                    </span>
+                  )}
+                  <span
+                    className="font-mono text-[8px] tracking-widest border px-1 py-px"
+                    style={{ color: PWORD_COLOR[v.pWord], borderColor: `${PWORD_COLOR[v.pWord]}40` }}
+                  >
+                    {v.pWord}
+                  </span>
+                </div>
+                <span className="font-mono text-[9px] text-[#333]">{score(v).toFixed(2)}</span>
+              </div>
+
+              <div className="font-sans font-bold text-[#F8F9FA] text-lg leading-tight mb-1 group-hover:text-[#D4AF37] transition-colors">
+                {v.name}
+              </div>
+              <div className="font-mono text-[10px] text-[#555] mb-2">{v.arrowType}</div>
+              <div className="font-mono text-[9px] text-[#D4AF37]/70">{v.object}</div>
+
+              <div className="mt-3 flex items-center gap-3 text-[9px] font-mono text-[#444]">
+                <span>{v.hz} Hz</span>
+                <span>·</span>
+                <span>r = {v.r}</span>
+                <span>·</span>
+                <span className="text-[#333]">{v.cat}</span>
+              </div>
+            </motion.button>
+          ))}
+        </div>
+      </section>
+
+      {/* ── Category champions row ─────────────────────────────────────────── */}
+      <section className="mb-14">
+        <div className="font-mono text-[9px] tracking-[0.28em] text-[#8BC34A] uppercase mb-4">
+          ◆ Category Champions
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2">
+          {Object.entries(CHAMPS).map(([cat, v]) => (
+            <button
+              key={cat}
+              onClick={() => setSelected(v)}
+              className={[
+                "flex flex-col items-center gap-1.5 p-3 border text-center transition-all duration-150",
+                selected?.id === v.id
+                  ? "border-[#8BC34A] bg-[#8BC34A]/8"
+                  : "border-[#1E1E1E] bg-[#0A0A0A] hover:border-[#8BC34A]/40",
+              ].join(" ")}
+            >
+              <span className="font-mono text-[8px] tracking-widest text-[#8BC34A] uppercase">{cat}</span>
+              <span className="font-sans font-bold text-[#F8F9FA] text-xs leading-tight">{v.name}</span>
+              <span
+                className="font-mono text-[8px]"
+                style={{ color: PWORD_COLOR[v.pWord] }}
+              >
+                {v.pWord}
+              </span>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {/* ── Detail + Full Table ────────────────────────────────────────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+
+        {/* Detail panel */}
+        <div className="lg:col-span-4">
+          <div className="font-mono text-[9px] tracking-[0.28em] text-[#555] uppercase mb-4">
+            ◆ Operator Detail
+          </div>
+          {selected ? (
+            <motion.div
+              key={selected.id}
+              initial={{ opacity: 0, x: -8 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="border border-[#D4AF37]/40 bg-[#0A0A0A] p-6"
+            >
+              {/* pWord badge */}
+              <div className="flex items-center gap-2 mb-4">
+                {selected.kleisli && (
+                  <span className="font-mono text-[8px] tracking-widest text-[#D32F2F] border border-[#D32F2F]/60 px-2 py-0.5">
+                    KLEISLI
+                  </span>
+                )}
+                <span
+                  className="font-mono text-[8px] tracking-widest border px-2 py-0.5"
+                  style={{ color: PWORD_COLOR[selected.pWord], borderColor: `${PWORD_COLOR[selected.pWord]}50` }}
+                >
+                  {selected.pWord.toUpperCase()}
+                </span>
+              </div>
+
+              <div className="font-sans font-black text-3xl text-[#F8F9FA] leading-none mb-1">
+                {selected.name}
+              </div>
+              <div className="font-mono text-xs text-[#555] mb-5">{selected.cat} · {selected.arrowType}</div>
+
+              <div className="bg-[#111111] border border-[#222] p-3 font-mono text-sm text-[#D4AF37] mb-5">
+                {selected.object}
+              </div>
+
+              {/* Bars */}
+              <div className="space-y-3">
+                {[
+                  { label: "Resistance", value: selected.r, max: 0.98 },
+                  { label: "Frequency (Hz)", value: selected.hz / 2.37, max: 1, raw: `${selected.hz} Hz` },
+                  { label: "Composite Score", value: score(selected) / 101, max: 1, raw: score(selected).toFixed(2) },
+                ].map(({ label, value, raw }) => (
+                  <div key={label}>
+                    <div className="flex justify-between font-mono text-[9px] text-[#555] mb-1">
+                      <span>{label}</span>
+                      <span style={{ color: PWORD_COLOR[selected.pWord] }}>{raw ?? value.toFixed(2)}</span>
+                    </div>
+                    <div className="h-1 bg-[#1A1A1A] w-full">
+                      <div
+                        className="h-1 transition-all duration-500"
+                        style={{ width: `${Math.min(value, 1) * 100}%`, background: PWORD_COLOR[selected.pWord] }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {selected.verb && (
+                <div className="mt-5 pt-4 border-t border-[#1E1E1E] font-mono text-[9px] tracking-[0.35em] text-[#333] uppercase">
+                  TELEMETRY · {selected.verb}
+                </div>
+              )}
+            </motion.div>
+          ) : (
+            <div className="border border-[#1E1E1E] bg-[#0A0A0A] p-6 font-mono text-xs text-[#333]">
+              Select an operator.
+            </div>
+          )}
+
+          {/* Linguistic appendix from the doc */}
+          <div className="mt-4 border border-[#1E1E1E] bg-[#0A0A0A] p-5">
+            <div className="font-mono text-[8px] tracking-[0.28em] text-[#444] uppercase mb-3">
+              Symbolic Layer
+            </div>
+            <div className="space-y-2 font-mono text-[10px] text-[#444]">
+              <div>
+                <span className="text-[#D4AF37]">金</span>
+                <span className="text-[#333] mx-2">→</span>
+                house where we are solid together
+              </div>
+              <div>
+                <span className="text-[#8BC34A]">魚</span>
+                <span className="text-[#333] mx-2">→</span>
+                ports of global trade · Long Beach to Amsterdam
+              </div>
+              <div>
+                <span className="text-[#D32F2F]">Ωμέγα</span>
+                <span className="text-[#333] mx-2">→</span>
+                terminal letter · ultimate finality
+              </div>
+              <div>
+                <span className="text-[#F8F9FA]">Ερε ιν Λάμδα</span>
+                <span className="text-[#333] mx-2">→</span>
+                ere in lambda · anterior to the function
+              </div>
+              <div className="pt-2 border-t border-[#1A1A1A] text-[#333] text-[9px] leading-relaxed">
+                Apache Black Omega: attack · stealth · terminal finality
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Full ranked table */}
+        <div className="lg:col-span-8">
+          <div className="flex items-center gap-3 mb-4 flex-wrap">
+            <div className="font-mono text-[9px] tracking-[0.28em] text-[#555] uppercase">
+              ◆ All Operators ({visible.length})
+            </div>
+            <div className="flex gap-1 flex-wrap">
+              {ALL_CATS.map((c) => (
+                <button
+                  key={c}
+                  onClick={() => setCatFilter(c)}
+                  className={[
+                    "font-mono text-[9px] tracking-widest px-2 py-1 uppercase border transition-all",
+                    catFilter === c
+                      ? "border-[#D4AF37] text-[#D4AF37] bg-[#D4AF37]/8"
+                      : "border-[#222] text-[#444] hover:border-[#444]",
+                  ].join(" ")}
+                >
+                  {c}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="border border-[#1E1E1E] overflow-hidden">
+            {/* Table header */}
+            <div className="grid grid-cols-[2rem_1fr_5rem_4rem_4rem_4rem] gap-2 px-3 py-2 bg-[#0A0A0A] border-b border-[#1E1E1E] font-mono text-[8px] tracking-widest text-[#333] uppercase">
+              <span>#</span>
+              <span>Operator</span>
+              <span>pWord</span>
+              <span>Cat</span>
+              <span className="text-right">r</span>
+              <span className="text-right">Score</span>
+            </div>
+
+            <div className="max-h-[560px] overflow-y-auto [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-[#333]">
+              {visible.map((v, i) => (
+                <button
+                  key={v.id}
+                  onClick={() => setSelected(v)}
+                  className={[
+                    "w-full grid grid-cols-[2rem_1fr_5rem_4rem_4rem_4rem] gap-2 px-3 py-2.5 text-left border-b border-[#111] transition-colors",
+                    selected?.id === v.id
+                      ? "bg-[#D4AF37]/6"
+                      : "hover:bg-[#141414]",
+                  ].join(" ")}
+                >
+                  <span className="font-mono text-[9px] text-[#333]">{i + 1}</span>
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-mono text-[11px] text-[#F8F9FA]">{v.name}</span>
+                      {v.kleisli && (
+                        <span className="font-mono text-[7px] text-[#D32F2F] border border-[#D32F2F]/40 px-0.5">K</span>
+                      )}
+                    </div>
+                    <div className="font-mono text-[9px] text-[#333] truncate">{v.object}</div>
+                  </div>
+                  <span
+                    className="font-mono text-[9px] self-center"
+                    style={{ color: PWORD_COLOR[v.pWord] }}
+                  >
+                    {v.pWord}
+                  </span>
+                  <span className="font-mono text-[9px] text-[#444] self-center">{v.cat}</span>
+                  <span className="font-mono text-[9px] text-[#555] self-center text-right">{v.r}</span>
+                  <span
+                    className="font-mono text-[9px] self-center text-right font-bold"
+                    style={{ color: i < SUMMIT.length ? "#D4AF37" : "#444" }}
+                  >
+                    {score(v).toFixed(1)}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+}
