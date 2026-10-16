@@ -6,3 +6,8 @@ src = "src"
 
 [build]
 build-dir = "book"
+
+[output.html]
+additional-css = ["theme/custom.css"]
+default-theme = "coal"
+preferred-dark-theme = "coal"

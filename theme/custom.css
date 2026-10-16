@@ -1,0 +1,398 @@
+/* neuralLoops custom theme
+ * Starter palette and typography inspired by example.css
+ * Dark surface · gold accent · mono labels · high-contrast body text
+ */
+
+:root {
+  /* Surfaces */
+  --nl-bg: #0a0a0a;
+  --nl-bg-elevated: #0d0d0d;
+  --nl-bg-sidebar: #0a0a0a;
+  --nl-bg-code: #111111;
+  --nl-bg-hover: #141414;
+
+  /* Borders */
+  --nl-border: #1e1e1e;
+  --nl-border-strong: #2a2a2a;
+  --nl-border-muted: #1a1a1a;
+
+  /* Text */
+  --nl-text: #f8f9fa;
+  --nl-text-muted: #555555;
+  --nl-text-dim: #444444;
+  --nl-text-faint: #333333;
+
+  /* Accents (from example.css pWord / brand colors) */
+  --nl-gold: #d4af37;
+  --nl-gold-soft: rgba(212, 175, 55, 0.3);
+  --nl-gold-wash: rgba(212, 175, 55, 0.08);
+  --nl-green: #8bc34a;
+  --nl-red: #d32f2f;
+  --nl-blue: #60a5fa;
+  --nl-purple: #a78bfa;
+  --nl-gray: #6b7280;
+
+  /* Links & chrome */
+  --nl-links: var(--nl-gold);
+  --nl-links-hover: #e8c84a;
+
+  /* Fonts */
+  --nl-font-sans: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --nl-font-mono: "JetBrains Mono", "Fira Code", "SF Mono", ui-monospace, monospace;
+}
+
+/* ── Base ─────────────────────────────────────────────────────────────────── */
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background-color: var(--nl-bg);
+  color: var(--nl-text);
+  font-family: var(--nl-font-sans);
+}
+
+/* Force dark content chrome even when a light theme is selected */
+.light,
+.rust,
+.coal,
+.navy,
+.ayu {
+  --bg: var(--nl-bg);
+  --fg: var(--nl-text);
+  --sidebar-bg: var(--nl-bg-sidebar);
+  --sidebar-fg: var(--nl-text);
+  --sidebar-non-existant: var(--nl-text-faint);
+  --sidebar-active: var(--nl-gold);
+  --sidebar-spacer: var(--nl-border);
+  --links: var(--nl-links);
+  --inline-code-color: var(--nl-gold);
+  --theme-popup-bg: var(--nl-bg-elevated);
+  --theme-popup-border: var(--nl-border-strong);
+  --theme-hover: var(--nl-bg-hover);
+  --quote-bg: var(--nl-bg-elevated);
+  --quote-border: var(--nl-gold-soft);
+  --table-border-color: var(--nl-border);
+  --table-header-bg: var(--nl-bg-elevated);
+  --table-alternate-bg: var(--nl-bg-code);
+  --searchbar-bg: var(--nl-bg-code);
+  --searchbar-fg: var(--nl-text);
+  --searchbar-border-color: var(--nl-border-strong);
+  --searchresults-header-fg: var(--nl-text-muted);
+  --searchresults-border-color: var(--nl-border);
+  --searchbar-shadow-color: transparent;
+  --scrollbar: var(--nl-text-faint);
+}
+
+/* ── Page content ─────────────────────────────────────────────────────────── */
+
+.content {
+  font-size: 1.05rem;
+  line-height: 1.7;
+}
+
+.content main {
+  max-width: 52rem;
+}
+
+.content h1,
+.content h2,
+.content h3,
+.content h4 {
+  font-family: var(--nl-font-sans);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--nl-text);
+  border-bottom: none;
+}
+
+.content h1 {
+  font-size: 2.75rem;
+  line-height: 1.05;
+  margin-bottom: 0.35em;
+}
+
+.content h1.menu-title {
+  font-size: inherit;
+  letter-spacing: inherit;
+  font-weight: inherit;
+}
+
+.content h2 {
+  font-size: 1.75rem;
+  color: var(--nl-gold);
+  margin-top: 2.25em;
+  padding-bottom: 0.35em;
+  border-bottom: 1px solid var(--nl-border);
+}
+
+.content h3 {
+  font-size: 1.25rem;
+  letter-spacing: -0.02em;
+}
+
+.content p,
+.content li {
+  color: var(--nl-text);
+}
+
+.content a {
+  color: var(--nl-links);
+  text-decoration: none;
+  border-bottom: 1px solid var(--nl-gold-soft);
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.content a:hover {
+  color: var(--nl-links-hover);
+  border-bottom-color: var(--nl-gold);
+}
+
+/* Subtle gold rule above chapter titles (matches example.css eye-bar) */
+.content h1::before {
+  content: "neuralLoops";
+  display: block;
+  font-family: var(--nl-font-mono);
+  font-size: 0.6rem;
+  font-weight: 500;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: var(--nl-gold);
+  margin-bottom: 0.85rem;
+}
+
+/* ── Code ─────────────────────────────────────────────────────────────────── */
+
+code {
+  font-family: var(--nl-font-mono);
+  font-size: 0.9em;
+}
+
+:not(pre) > code {
+  background: var(--nl-bg-code);
+  color: var(--nl-gold);
+  border: 1px solid var(--nl-border-strong);
+  border-radius: 0;
+  padding: 0.1em 0.4em;
+}
+
+pre {
+  background: var(--nl-bg-code) !important;
+  border: 1px solid var(--nl-border);
+  border-radius: 0;
+  padding: 1rem 1.15rem !important;
+}
+
+pre code {
+  color: var(--nl-text);
+  background: transparent !important;
+}
+
+/* ── Blockquotes, tables, hr ──────────────────────────────────────────────── */
+
+blockquote {
+  background: var(--nl-bg-elevated);
+  border-left: 3px solid var(--nl-gold);
+  color: var(--nl-text-muted);
+  padding: 0.85rem 1.15rem;
+  margin: 1.5rem 0;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  font-family: var(--nl-font-mono);
+  font-size: 0.85rem;
+}
+
+table th {
+  background: var(--nl-bg-elevated);
+  color: var(--nl-gold);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.7rem;
+  font-weight: 600;
+  border-bottom: 1px solid var(--nl-border);
+  padding: 0.65rem 0.75rem;
+}
+
+table td {
+  border-bottom: 1px solid var(--nl-border-muted);
+  padding: 0.65rem 0.75rem;
+  color: var(--nl-text);
+}
+
+table tr:hover td {
+  background: var(--nl-bg-hover);
+}
+
+hr {
+  border: none;
+  border-top: 1px solid var(--nl-border);
+  margin: 2.5rem 0;
+}
+
+/* ── Sidebar ──────────────────────────────────────────────────────────────── */
+
+.sidebar {
+  background-color: var(--nl-bg-sidebar);
+  border-right: 1px solid var(--nl-border);
+}
+
+.sidebar .sidebar-scrollbox {
+  padding: 1rem 0.75rem 2rem;
+}
+
+.sidebar .chapter-item {
+  font-family: var(--nl-font-mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.02em;
+}
+
+.sidebar .chapter-item a {
+  color: var(--nl-text-muted);
+  padding: 0.4rem 0.75rem;
+  border-radius: 0;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.sidebar .chapter-item a:hover {
+  color: var(--nl-text);
+  background: var(--nl-bg-hover);
+}
+
+.sidebar .chapter-item.active > a,
+.sidebar .chapter-item a.active {
+  color: var(--nl-gold) !important;
+  background: var(--nl-gold-wash);
+  border-left: 2px solid var(--nl-gold);
+  padding-left: calc(0.75rem - 2px);
+}
+
+.sidebar-header,
+.sidebar .chapter > .chapter-item:first-child {
+  font-family: var(--nl-font-sans);
+}
+
+#sidebar-toggle,
+.icon-button {
+  color: var(--nl-text-muted);
+}
+
+#sidebar-toggle:hover,
+.icon-button:hover {
+  color: var(--nl-gold);
+}
+
+/* ── Header / menu bar ────────────────────────────────────────────────────── */
+
+.menu-bar {
+  background: rgba(10, 10, 10, 0.92);
+  border-bottom: 1px solid var(--nl-border);
+  backdrop-filter: blur(8px);
+}
+
+.menu-title {
+  font-family: var(--nl-font-sans);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--nl-text) !important;
+}
+
+.menu-bar .icon-button {
+  color: var(--nl-text-muted);
+}
+
+.menu-bar .icon-button:hover {
+  color: var(--nl-gold);
+  background: var(--nl-gold-wash);
+}
+
+/* ── Navigation footer ────────────────────────────────────────────────────── */
+
+.nav-chapters {
+  color: var(--nl-text-faint);
+  transition: color 0.15s ease;
+}
+
+.nav-chapters:hover {
+  color: var(--nl-gold);
+}
+
+/* ── Search ───────────────────────────────────────────────────────────────── */
+
+#searchbar {
+  font-family: var(--nl-font-mono);
+  font-size: 0.85rem;
+  background: var(--nl-bg-code);
+  border: 1px solid var(--nl-border-strong);
+  border-radius: 0;
+  color: var(--nl-text);
+}
+
+#searchbar:focus {
+  border-color: var(--nl-gold);
+  box-shadow: 0 0 0 1px var(--nl-gold-soft);
+  outline: none;
+}
+
+/* ── Theme popup ──────────────────────────────────────────────────────────── */
+
+.theme-popup {
+  background: var(--nl-bg-elevated);
+  border: 1px solid var(--nl-border-strong);
+  border-radius: 0;
+}
+
+.theme-popup .theme {
+  color: var(--nl-text-muted);
+  font-family: var(--nl-font-mono);
+  font-size: 0.8rem;
+}
+
+.theme-popup .theme:hover {
+  background: var(--nl-bg-hover);
+  color: var(--nl-gold);
+}
+
+/* ── Scrollbars ───────────────────────────────────────────────────────────── */
+
+.sidebar::-webkit-scrollbar,
+.sidebar-scrollbox::-webkit-scrollbar,
+pre::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+.sidebar::-webkit-scrollbar-track,
+.sidebar-scrollbox::-webkit-scrollbar-track,
+pre::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar::-webkit-scrollbar-thumb,
+.sidebar-scrollbox::-webkit-scrollbar-thumb,
+pre::-webkit-scrollbar-thumb {
+  background: var(--nl-text-faint);
+}
+
+/* ── Selection ────────────────────────────────────────────────────────────── */
+
+::selection {
+  background: var(--nl-gold-soft);
+  color: var(--nl-text);
+}
+
+/* ── Print ────────────────────────────────────────────────────────────────── */
+
+@media print {
+  body {
+    background: white;
+    color: black;
+  }
+
+  .content h1::before {
+    display: none;
+  }
+}
