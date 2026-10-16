@@ -1,0 +1,8 @@
+[book]
+title = "neuralLoops"
+authors = []
+language = "en"
+src = "src"
+
+[build]
+build-dir = "book"
